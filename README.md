@@ -23,7 +23,7 @@ Known issues (TODO)
 
 # Examples
 
-## Randomly generated world
+## Randomly generated worlds
 
 ```py
 import random
@@ -40,7 +40,13 @@ display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
 ).getvalue()))
 ```
 
-![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/ab7eca82-5b20-4b7e-bbae-a2e8350b4611)
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/25bd612e-b8e9-42ed-91b4-014921173900)
+
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/11d299d1-532a-4ef4-a5a0-6a7bb93c1126)
+
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/9085eab6-4091-4548-8c61-5fe875a19cc2)
+
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/cc435d8b-e5c0-4bab-88b3-f66de29a48a3)
 
 ## [examples/sandworld.py](examples/sand_world.py)
 
@@ -63,5 +69,4 @@ display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
 ```py
 world = VoxelWorld.show_themes()
 ```
-
-![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/25bd612e-b8e9-42ed-91b4-014921173900)
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/ab7eca82-5b20-4b7e-bbae-a2e8350b4611)
