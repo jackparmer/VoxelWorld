@@ -1,6 +1,14 @@
 # VoxelWorld
 Create delicious Voxel worlds in Python
 
+## Install
+
+```sh
+git clone https://github.com/jackparmer/VoxelWorld.git
+cd VoxelWorld
+python3 -m pip install .
+```
+
 For physics simulation, games, art, and fun
 
 Inspo: https://github.com/wwwtyro/vixel
