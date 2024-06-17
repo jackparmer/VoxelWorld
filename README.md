@@ -5,14 +5,25 @@ For physics simulation, games, art, and fun
 
 Inspo: https://github.com/wwwtyro/vixel
 
+Features!
+- Automatic GIF generation
+- Numpy 3d ones array in -> Voxel world out
+- Fast-ish (as fast as rendering on the CPU can be)
+- Portable! Outputs simple image files
+- Notebooks! Works well in the Jupyter notebook ecosystem
+- Eye candy! [Ambient occlusion](https://en.wikipedia.org/wiki/Ambient_occlusion), specularity, etc
+
+Known issues (TODO)
+- Speed: Need to migrate to a GPU-based renderer while maintaining portability (suggestions?)
+- The illumination based on light source positioning is wonky - but you can fake it (see light_source.py example)
+- If you look closely, the bottom of some voxel cubes are cut off - I'm not sure why
+- Probably a lot more...
+
 ***
 
 # Examples
 
 ## Randomly generated world
-
-![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/25bd612e-b8e9-42ed-91b4-014921173900)
-
 
 ```py
 import random
@@ -53,3 +64,4 @@ display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
 world = VoxelWorld.show_themes()
 ```
 
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/25bd612e-b8e9-42ed-91b4-014921173900)
