@@ -3,6 +3,7 @@ from noise import pnoise3
 from IPython.display import display, Image as IPImage
 import io
 from PIL import Image
+from voxel_world import VoxelWorld
 
 # Define the size of the voxel world
 size = 32
