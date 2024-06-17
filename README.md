@@ -11,6 +11,8 @@ python3 -m pip install .
 from voxel_world import VoxelWorld
 ```
 
+## About
+
 For physics simulation, games, art, and fun
 
 Inspo: https://github.com/wwwtyro/vixel
