@@ -29,12 +29,6 @@ display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
 ).getvalue()))
 ```
 
-## Mono-color themes
-
-```py
-world = VoxelWorld.show_themes()
-```
-
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/ab7eca82-5b20-4b7e-bbae-a2e8350b4611)
 
 ## [examples/sandworld.py](examples/sand_world.py)
@@ -52,4 +46,10 @@ world = VoxelWorld.show_themes()
 ## [examples/earth_tones.py](examples/earth_tones.py)
 
 ![earth_tones](https://github.com/jackparmer/VoxelWorld/assets/1865834/1cffc6bf-a07c-4804-86fa-783dae51b3b6)
+
+## Mono-color themes
+
+```py
+world = VoxelWorld.show_themes()
+```
 
