@@ -15,9 +15,9 @@ Features!
 
 Known issues (TODO)
 - Speed: Need to migrate to a GPU-based renderer while maintaining portability (suggestions?)
-- The illumination based on light source positioning is wonky - but you can fake it (see light_source.py example)
-- If you look closely, the bottom of some voxel cubes are cut off - I'm not sure why
-- Probably a lot more...
+- Illumination: Light source ray tracing is wonky - but you can fake it (see light_source.py example)
+- Cut offs: The bottom of some voxel cubes are cut off - I'm not sure why
+- Likely much more...
 
 ***
 
