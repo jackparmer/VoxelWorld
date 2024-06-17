@@ -7,6 +7,8 @@ Create delicious Voxel worlds in Python
 git clone https://github.com/jackparmer/VoxelWorld.git
 cd VoxelWorld
 python3 -m pip install .
+
+from voxel_world import VoxelWorld
 ```
 
 For physics simulation, games, art, and fun
@@ -35,7 +37,10 @@ Known issues (TODO)
 
 ```py
 import random
+import numpy as np
 from noise import pnoise3
+from voxel_world import VoxelWorld
+from IPython.display import display, Image as IPImage # Jupyter notebook
 
 display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
     np.array([[[1 if pnoise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(16)] for y in range(16)] for x in range(16)], dtype=np.uint8),
@@ -75,6 +80,8 @@ display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
 ## Mono-color themes
 
 ```py
-world = VoxelWorld.show_themes()
+from voxel_world import VoxelWorld
+
+world = VoxelWorld.show_themes() # Jupyter notebook only
 ```
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/ab7eca82-5b20-4b7e-bbae-a2e8350b4611)
