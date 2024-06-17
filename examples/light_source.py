@@ -4,6 +4,7 @@ import io
 import matplotlib.pyplot as plt
 from IPython.display import display, Image as IPImage
 from noise import pnoise3
+from voxel_world import VoxelWorld
 
 def create_voxel_sphere(size, radius):
     """Creates a spherical voxel object within a cubic voxel world."""
