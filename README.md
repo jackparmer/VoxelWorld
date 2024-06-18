@@ -1,6 +1,10 @@
 # VoxelWorld
 Create delicious Voxel worlds in Python
 
+[Demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
+
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/8c323677-ab78-4e0b-a976-d35c74d7389d">
+
 ## Install
 
 ### From PyPi
