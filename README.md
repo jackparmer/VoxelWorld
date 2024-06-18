@@ -3,6 +3,12 @@ Create delicious Voxel worlds in Python
 
 ## Install
 
+### From PyPi
+
+> pip3 install voxel_world
+
+### From source
+
 ```sh
 git clone https://github.com/jackparmer/VoxelWorld.git
 cd VoxelWorld
