@@ -1,7 +1,12 @@
+.DS_Store
 LICENSE
 README.md
 pyproject.toml
 .github/workflows/python-package.yml
+dist/.DS_Store
+dist/voxel_world-0.0.1-py2.py3-none-any.whl
+dist/voxel_world-0.0.1-py3-none-any.whl
+dist/voxel_world-0.0.1.tar.gz
 examples/jill_of_the_jungle.py
 examples/light_source.py
 examples/sand_world.py

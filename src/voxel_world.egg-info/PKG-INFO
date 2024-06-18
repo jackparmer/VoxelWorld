@@ -6,7 +6,7 @@ Author-email: JP <jack.parmer@pm.me>
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: noise
+Requires-Dist: vnoise
 Requires-Dist: numpy
 Requires-Dist: pillow
 Requires-Dist: matplotlib
@@ -15,6 +15,12 @@ Requires-Dist: matplotlib
 Create delicious Voxel worlds in Python
 
 ## Install
+
+### From PyPi
+
+> pip3 install voxel_world
+
+### From source
 
 ```sh
 git clone https://github.com/jackparmer/VoxelWorld.git

@@ -1,4 +1,4 @@
-noise
+vnoise
 numpy
 pillow
 matplotlib
