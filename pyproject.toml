@@ -17,3 +17,6 @@ dependencies = [
     "pillow",
     "matplotlib"
 ]
+
+[tool.distutils.bdist_wheel]
+universal = true
