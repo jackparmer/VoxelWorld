@@ -5,7 +5,7 @@ Create delicious Voxel worlds in Python
 
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/8c323677-ab78-4e0b-a976-d35c74d7389d">
 
-![smoke_show](https://github.com/jackparmer/VoxelWorld/assets/1865834/917f38ac-dd26-4419-9725-0693ca05aaa1)
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/917f38ac-dd26-4419-9725-0693ca05aaa1">
 
 ## Install
 
