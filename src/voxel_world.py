@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw
 import io
 import matplotlib.pyplot as plt
 from IPython.display import display, Image as IPImage
-from noise import pnoise3
+import vnoise
 
 def calculate_ambient_occlusion(world, size, x, y, z):
     directions = [
@@ -38,10 +38,9 @@ class NoiseGenerator:
         self.lacunarity = lacunarity
 
     def generate_noise(self, x, y, z):
+        noise = vnoise.Noise()        
         if self.noise_type == 'perlin':
-            return pnoise3(x / self.scale, y / self.scale, z / self.scale, octaves=self.octaves, persistence=self.persistence, lacunarity=self.lacunarity)
-        elif self.noise_type == 'simplex':
-            return snoise3(x / self.scale, y / self.scale, z / self.scale, octaves=self.octaves, persistence=self.persistence, lacunarity=self.lacunarity)
+            return noise.noise3(x / self.scale, y / self.scale, z / self.scale, octaves=self.octaves, persistence=self.persistence, lacunarity=self.lacunarity)
         else:
             raise ValueError("Unsupported noise type")
 
