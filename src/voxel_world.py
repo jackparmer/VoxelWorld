@@ -61,7 +61,20 @@ class VoxelWorld:
         'Mercury': {'voxel_color': (230, 230, 230), 'light_intensity': 0.9, 'fog_intensity': 0.05, 'light_source_position': (64, 64, 128)},
     }
 
-    def __init__(self, voxel_matrix, theme_name='Lilac', resolution=2, zoom=1.0, show_light_source=False, time_render=False, dark_bg=False, color_matrix=None, transparency_matrix=None, specularity_matrix=None):
+    def __init__(self, 
+                voxel_matrix, 
+                theme_name='Lilac', 
+                resolution=2, 
+                zoom=1.0, 
+                show_light_source=False, 
+                time_render=False, 
+                dark_bg=False, 
+                color_matrix=None, 
+                transparency_matrix=None, 
+                specularity_matrix=None, 
+                singleton = False,
+                singleton_color = (180, 100, 100)):
+
         self.size = voxel_matrix.shape[0]
         self.world = voxel_matrix
 
@@ -81,16 +94,12 @@ class VoxelWorld:
         self.transparency_matrix = transparency_matrix if transparency_matrix is not None else np.ones((self.size, self.size, self.size), dtype=np.float32)
         self.specularity_matrix = specularity_matrix if specularity_matrix is not None else np.zeros((self.size, self.size, self.size), dtype=np.float32)
 
-    def update(self, voxel_matrix=None, color_matrix=None, transparency_matrix=None, specularity_matrix=None):
-        if voxel_matrix is not None:
-            self.world = voxel_matrix
-            self.ao_matrix = precompute_ambient_occlusion(voxel_matrix, self.size)
-        if color_matrix is not None:
-            self.color_matrix = color_matrix
-        if transparency_matrix is not None:
-            self.transparency_matrix = transparency_matrix
-        if specularity_matrix is not None:
-            self.specularity_matrix = specularity_matrix
+        self.singleton = singleton if singleton is not None else None
+        self.singleton_color = singleton_color if singleton_color is not None else None
+
+    def update(self, world_attributes):
+        for key, value in world_attributes.items():
+            setattr(self, key, value)
 
     def render(self, viewing_angle=(45, 30)):
         if self.time_render:
@@ -103,6 +112,8 @@ class VoxelWorld:
         img_size = int(self.size * self.resolution * self.zoom * 2)
         margin = int(self.size * self.resolution * self.zoom)
         bg_color = (50, 50, 50, 255) if self.dark_bg else (220, 220, 220, 255)
+        if self.singleton is not None:
+            bg_color = (255, 255, 255, 0) # transparent background for single voxel drawings
         image = Image.new('RGBA', (img_size + margin, img_size + margin), bg_color)
         draw = ImageDraw.Draw(image)
 
@@ -114,14 +125,18 @@ class VoxelWorld:
         offset_x = (img_size + margin) // 2 - int(center_x)
         offset_y = (img_size + margin) // 2 - int(center_y)
 
-        for x in range(self.size):
-            for y in range(self.size):
-                self.render_col(draw, x, y, angle_x_rad, angle_y_rad, offset_x, offset_y)
+        if self.singleton is None:
+            for x in range(self.size):
+                for y in range(self.size):
+                    self.render_col(draw, x, y, angle_x_rad, angle_y_rad, offset_x, offset_y)
+        else:
+            x, y, z = self.singleton
+            self.draw_voxel(draw, x, y, z, self.singleton_color, 1, 1, angle_x_rad, angle_y_rad, offset_x, offset_y)
 
-        if self.fog_intensity > 0:
+        if self.fog_intensity > 0 and self.singleton is None:
             image = self.apply_fog(image)
 
-        if self.show_light_source:
+        if self.show_light_source and self.singleton is None:
             image = self.add_light_source_sphere(image, offset_x, offset_y)
 
         bbox = image.getbbox()
@@ -226,10 +241,22 @@ class VoxelWorld:
 
     class Animations:
         @staticmethod
-        def create_voxel_img(voxel_matrix, theme_name, resolution=2, viewing_angle=(45, 30), zoom=1.0, show_light_source=False, time_render=False, dark_bg=False, color_matrix=None, transparency_matrix=None, specularity_matrix=None):
+        def create_voxel_img(voxel_matrix,
+                            theme_name, resolution=2,
+                            viewing_angle=(45, 30),
+                            zoom=1.0,
+                            show_light_source=False,
+                            time_render=False,
+                            dark_bg=False,
+                            color_matrix=None,
+                            transparency_matrix=None,
+                            specularity_matrix=None,
+                            singleton = None,
+                            singleton_color = (180, 100, 100)):
+
             world = VoxelWorld(voxel_matrix, theme_name, resolution, zoom, show_light_source, time_render, dark_bg, color_matrix, transparency_matrix, specularity_matrix)
             image = world.render(viewing_angle)
-            image = image.convert('RGB')
+            image = image.convert('RGBA')
 
             byte_stream = io.BytesIO()
             image.save(byte_stream, format='PNG')
@@ -237,13 +264,25 @@ class VoxelWorld:
             return byte_stream
 
         @staticmethod
-        def gen_gif(stack, theme_name, resolution=2, viewing_angle=(45, 30), zoom=1.0, show_light_source=False, dark_bg=False, color_matrix_stack=None, transparency_matrix_stack=None, specularity_matrix_stack=None):
+        def gen_gif(stack,
+                    theme_name,
+                    resolution=2,
+                    viewing_angle=(45, 30),
+                    zoom=1.0,
+                    show_light_source=False,
+                    dark_bg=False,
+                    color_matrix_stack=None,
+                    transparency_matrix_stack=None,
+                    specularity_matrix_stack=None,
+                    singleton = None,
+                    singleton_color = (180, 100, 100)):
+
             images = []
             for i, voxel_matrix in enumerate(stack):
                 color_matrix = color_matrix_stack[i] if color_matrix_stack is not None else None
                 transparency_matrix = transparency_matrix_stack[i] if transparency_matrix_stack is not None else None
                 specularity_matrix = specularity_matrix_stack[i] if specularity_matrix_stack is not None else None
-                byte_stream = VoxelWorld.Animations.create_voxel_img(voxel_matrix, theme_name, resolution, viewing_angle, zoom, show_plane, show_light_source, False, dark_bg, color_matrix, transparency_matrix, specularity_matrix)
+                byte_stream = VoxelWorld.Animations.create_voxel_img(voxel_matrix, theme_name, resolution, viewing_angle, zoom, show_light_source, False, dark_bg, color_matrix, transparency_matrix, specularity_matrix)
                 image = Image.open(byte_stream)
                 images.append(image)
 

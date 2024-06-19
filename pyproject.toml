@@ -8,14 +8,15 @@ authors = [
     {name = "JP", email = "jack.parmer@pm.me"}
 ]
 description = "Delicious Voxel worlds in Python"
-version = "0.0.2"
+version = "0.0.4"
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [
     "vnoise",
     "numpy",
     "pillow",
-    "matplotlib"
+    "matplotlib",
+    "IPython"
 ]
 
 [tool.distutils.bdist_wheel]

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: voxel_world
-Version: 0.0.2
+Version: 0.0.3
 Summary: Delicious Voxel worlds in Python
 Author-email: JP <jack.parmer@pm.me>
 Requires-Python: >=3.7
@@ -10,6 +10,7 @@ Requires-Dist: vnoise
 Requires-Dist: numpy
 Requires-Dist: pillow
 Requires-Dist: matplotlib
+Requires-Dist: IPython
 
 # VoxelWorld
 Create delicious Voxel worlds in Python
