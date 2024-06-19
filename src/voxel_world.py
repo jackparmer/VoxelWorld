@@ -95,9 +95,9 @@ class VoxelWorld:
         self.transparency_matrix = transparency_matrix if transparency_matrix is not None else np.ones((self.size, self.size, self.size), dtype=np.float32)
         self.specularity_matrix = specularity_matrix if specularity_matrix is not None else np.zeros((self.size, self.size, self.size), dtype=np.float32)
 
-        self.transparent = transparent if transparent is not None
-        self.singleton = singleton if singleton is not None
-        self.singleton_color = singleton_color if singleton_color is not None
+        self.transparent = transparent if transparent is not None else False
+        self.singleton = singleton if singleton is not None else None
+        self.singleton_color = singleton_color if singleton_color is not None else None
 
     def update(self, world_attributes):
         for key, value in world_attributes.items():
@@ -113,7 +113,7 @@ class VoxelWorld:
 
         img_size = int(self.size * self.resolution * self.zoom * 2)
         margin = int(self.size * self.resolution * self.zoom)        
-        if self.transparnet or self.singleton is not None:
+        if self.transparent or self.singleton is not None:
             bg_color = (255, 255, 255, 0) # transparent background for single voxel drawings
         else:
             bg_color = (50, 50, 50, 255) if self.dark_bg else (220, 220, 220, 255)
