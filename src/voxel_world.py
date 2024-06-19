@@ -72,7 +72,7 @@ class VoxelWorld:
                 color_matrix=None, 
                 transparency_matrix=None, 
                 specularity_matrix=None, 
-                singleton = False,
+                singleton = None,
                 singleton_color = (180, 100, 100)):
 
         self.size = voxel_matrix.shape[0]
