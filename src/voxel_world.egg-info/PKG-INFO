@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: voxel_world
-Version: 0.0.9
+Version: 0.1.0
 Summary: Delicious Voxel worlds in Python
 Author-email: JP <jack.parmer@pm.me>
 Requires-Python: >=3.7
@@ -17,7 +17,7 @@ Create delicious Voxel worlds in Python
 
 [Live demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
 
-<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/8c323677-ab78-4e0b-a976-d35c74d7389d">
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/680dcde4-299e-4508-8cb7-1779831b1b98">
 
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/917f38ac-dd26-4419-9725-0693ca05aaa1">
 
@@ -61,26 +61,53 @@ Known issues (TODO)
 
 # Examples
 
+## Animations
+
+```py
+from voxel_world import Volume, Surface, Agent, Sequence
+
+volume = Volume(Volume.purlin_matrix(64));
+surf = Surface(volume);
+agents = [Agent(surf, mask) for mask in Sequence.snake(surf.topology, grid_size=64, num_steps=1000)];
+seq = Sequence(agents);
+
+seq2 = seq.apply_bg(volume)
+
+seq2.save('voxel_animation64_v2.gif')
+```
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/voxel_animation64.gif?raw=true">
+
+## Surfaces API
+
+```
+from voxel_world import Volume, Surface;
+volume = Volume(Volume.purlin_matrix(32)); surf = Surface(volume)
+surf.color = (255,0,0)
+volume.add(surf).show()
+```
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/30d0d2f8-8f7b-426c-b394-d18ca2c47c93)
+
 ## Randomly generated worlds
 
 [Live demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
 
 ```py
-import random
-import numpy as np
-from noise import pnoise3
-from voxel_world import VoxelWorld
-from IPython.display import display, Image as IPImage # Jupyter notebook
+import random; import vnoise
+from IPython.display import display, Image as IPImage
+from voxel_world import Volume
 
-display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
-    np.array([[[1 if pnoise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(16)] for y in range(16)] for x in range(16)], dtype=np.uint8),
-    random.choice(list(VoxelWorld.themes.keys())),
+noise = vnoise.Noise()
+
+# Display in Juypter
+display(IPImage(Volume(
+    np.array([[[1 if noise.noise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(16)] for y in range(16)] for x in range(16)], dtype=np.uint8),
+    theme=random.choice(list(Volume.themes.keys())),
     resolution=10,
     viewing_angle=(random.randint(0, 90), random.randint(0, 90)),
     zoom=2.0,
     show_light_source=False,
     dark_bg=False
-).getvalue()))
+).byte_stream().getvalue()))
 ```
 
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/25bd612e-b8e9-42ed-91b4-014921173900)
@@ -91,27 +118,27 @@ display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
 
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/cc435d8b-e5c0-4bab-88b3-f66de29a48a3)
 
-## [examples/sandworld.py](examples/sand_world.py)
+## [examples/color_matrix/sand_world.py](examples/color_matrix/sand_world.py)
 
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/f2a61fae-5133-4e2c-8bf9-71e69c1d0948)
 
-## [examples/light_source.py](examples/light_source.py)
+## [examples/lighting/light_source.py](examples/lighting/light_source.py)
 
 ![download (1)](https://github.com/jackparmer/VoxelWorld/assets/1865834/d86f3e6a-322a-4273-8260-fc41fb215eaf)
 
-## [examples/jill_of_the_jungle.py](examples/jill_of_the_jungle.py)
+## [examples/color_matrix/jill_of_the_jungle.py](examples/color_matrix/jill_of_the_jungle.py)
 
 ![jill_of_the_jungle](https://github.com/jackparmer/VoxelWorld/assets/1865834/820494a5-452f-4f87-b6c7-bbe4abc3e65e)
 
-## [examples/earth_tones.py](examples/earth_tones.py)
+## [examples/color_matrix/earth_tones.py](examples/color_matrix/earth_tones.py)
 
 ![earth_tones](https://github.com/jackparmer/VoxelWorld/assets/1865834/1cffc6bf-a07c-4804-86fa-783dae51b3b6)
 
 ## Mono-color themes
 
 ```py
-from voxel_world import VoxelWorld
+from voxel_world import Volume
 
-world = VoxelWorld.show_themes() # Jupyter notebook only
+world = Volume.show_themes() # Jupyter notebook only
 ```
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/ab7eca82-5b20-4b7e-bbae-a2e8350b4611)

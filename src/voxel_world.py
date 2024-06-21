@@ -504,7 +504,7 @@ class Sequence:
         return walk_coordinates
     
     @staticmethod
-    def snake(topology, num_steps=500, grid_size=16):
+    def snake(num_steps=500, grid_size=16):
         """
         Returns coordinates for snake Agent demo
 
@@ -539,7 +539,7 @@ class Sequence:
         grid_evolution = [grid.copy()]
 
         # Function to get the next move towards the food
-        def get_next_move(snake, food_position, topology):
+        def get_next_move(snake, food_position):
             head = snake[0]
             directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
             valid_moves = []
@@ -548,8 +548,7 @@ class Sequence:
                 next_position = (head[0] + direction[0], head[1] + direction[1])
                 if (0 <= next_position[0] < grid_size and 
                     0 <= next_position[1] < grid_size and 
-                    next_position not in snake and
-                    abs(topology[next_position] - topology[head]) <= 2):
+                    next_position not in snake):
                     valid_moves.append((next_position, direction))
             
             if not valid_moves:
@@ -561,7 +560,7 @@ class Sequence:
 
         # Simulate the game of Snake
         for _ in range(num_steps):
-            next_position, move = get_next_move(snake, food_position, topology)
+            next_position, move = get_next_move(snake, food_position)
             if next_position is None:
                 # No valid moves, game over
                 break

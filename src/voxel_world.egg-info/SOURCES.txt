@@ -17,6 +17,11 @@ bin/pip
 bin/pip3
 bin/pip3.11
 dist/.DS_Store
+examples/.DS_Store
+examples/color_matrix/earth_tones.py
+examples/color_matrix/jill_of_the_jungle.py
+examples/color_matrix/sand_world.py
+examples/lighting/light_source.py
 lib/python3.11/site-packages/distutils-precedence.pth
 lib/python3.11/site-packages/_distutils_hack/__init__.py
 lib/python3.11/site-packages/_distutils_hack/override.py
