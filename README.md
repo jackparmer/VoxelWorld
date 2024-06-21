@@ -47,6 +47,23 @@ Known issues (TODO)
 
 # Examples
 
+## Animations
+
+```
+from voxel_world import Volume, Surface, Agent, Sequence
+
+volume = Volume(Volume.purlin_matrix(64));
+surf = Surface(volume);
+agents = [Agent(surf, mask) for mask in Sequence.snake(surf.topology, grid_size=64, num_steps=1000)];
+seq = Sequence(agents);
+
+seq2 = seq.apply_bg(volume)
+
+seq2.save('voxel_animation64_v2.gif')
+```
+
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/voxel_animation64.gif?raw=true">
+
 ## Randomly generated worlds
 
 [Live demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
