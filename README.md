@@ -49,7 +49,7 @@ Known issues (TODO)
 
 ## Animations
 
-```
+```py
 from voxel_world import Volume, Surface, Agent, Sequence
 
 volume = Volume(Volume.purlin_matrix(64));
