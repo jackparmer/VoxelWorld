@@ -1,9 +1,12 @@
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageSequence
 import io
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from IPython.display import display, Image as IPImage
 import vnoise
+import random
+import copy
 
 def calculate_ambient_occlusion(world, size, x, y, z):
     directions = [
@@ -38,74 +41,89 @@ class NoiseGenerator:
         self.lacunarity = lacunarity
 
     def generate_noise(self, x, y, z):
-        noise = vnoise.Noise()        
         if self.noise_type == 'perlin':
-            return noise.noise3(x / self.scale, y / self.scale, z / self.scale, octaves=self.octaves, persistence=self.persistence, lacunarity=self.lacunarity)
+            noise = vnoise.Noise()
+            return np.array([[[1 if noise.noise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(16)] for y in range(16)] for x in range(16)], dtype=np.uint8)
         else:
             raise ValueError("Unsupported noise type")
 
-class VoxelWorld:
+class Volume:
     themes = {
-        'Moon': {'voxel_color': (150, 100, 150), 'light_intensity': 0.7, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Gray': {'voxel_color': (130, 130, 130), 'light_intensity': 0.8, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Rose': {'voxel_color': (180, 100, 100), 'light_intensity': 0.6, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Lilac': {'voxel_color': (160, 160, 200), 'light_intensity': 0.9, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Snow': {'voxel_color': (200, 200, 250), 'light_intensity': 0.5, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Mint': {'voxel_color': (180, 255, 200), 'light_intensity': 0.7, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Peach': {'voxel_color': (255, 204, 170), 'light_intensity': 0.8, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Sky': {'voxel_color': (135, 206, 235), 'light_intensity': 0.9, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Lavender': {'voxel_color': (230, 230, 250), 'light_intensity': 0.6, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Lemon': {'voxel_color': (255, 255, 204), 'light_intensity': 0.5, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
-        'Ice': {'voxel_color': (200, 255, 255), 'light_intensity': 0.9, 'fog_intensity': 0.05, 'light_source_position': (64, 64, 128)},
-        'Obsidian': {'voxel_color': (50, 50, 50), 'light_intensity': 0.9, 'fog_intensity': 0.05, 'light_source_position': (64, 64, 128)},
-        'Mercury': {'voxel_color': (230, 230, 230), 'light_intensity': 0.9, 'fog_intensity': 0.05, 'light_source_position': (64, 64, 128)},
+        'Moon': {'color': (150, 100, 150), 'light_intensity': 0.7, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Gray': {'color': (130, 130, 130), 'light_intensity': 0.8, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Rose': {'color': (180, 100, 100), 'light_intensity': 0.6, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Lilac': {'color': (160, 160, 200), 'light_intensity': 0.9, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Snow': {'color': (200, 200, 250), 'light_intensity': 0.5, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Mint': {'color': (180, 255, 200), 'light_intensity': 0.7, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Peach': {'color': (255, 204, 170), 'light_intensity': 0.8, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Sky': {'color': (135, 206, 235), 'light_intensity': 0.9, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Lavender': {'color': (230, 230, 250), 'light_intensity': 0.6, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Lemon': {'color': (255, 255, 204), 'light_intensity': 0.5, 'fog_intensity': 0.1, 'light_source_position': (64, 64, 128)},
+        'Ice': {'color': (200, 255, 255), 'light_intensity': 0.9, 'fog_intensity': 0.05, 'light_source_position': (64, 64, 128)},
+        'Obsidian': {'color': (50, 50, 50), 'light_intensity': 0.9, 'fog_intensity': 0.05, 'light_source_position': (64, 64, 128)},
+        'Mercury': {'color': (230, 230, 230), 'light_intensity': 0.9, 'fog_intensity': 0.05, 'light_source_position': (64, 64, 128)},
     }
 
     def __init__(self, 
-                voxel_matrix, 
-                theme_name='Lilac', 
-                resolution=2, 
+                voxel_matrix=None,
+                viewing_angle=(45, 30),
+                theme='Lilac', 
+                resolution=10.0, 
                 zoom=1.0, 
                 show_light_source=False, 
-                time_render=False, 
+                timeit=False, 
                 dark_bg=False, 
                 color_matrix=None, 
                 transparency_matrix=None, 
                 specularity_matrix=None,
-                transparent=False,
-                singleton = None,
-                singleton_color = (180, 100, 100)):
+                transparent=False):
 
-        self.size = voxel_matrix.shape[0]
+        if voxel_matrix is None:            
+            voxel_matrix = self.purlin_matrix()
+        
+        # 3d Numpy array
         self.world = voxel_matrix
+        self.size = voxel_matrix.shape[0]
 
-        theme = VoxelWorld.themes[theme_name]
-        self.voxel_color = theme['voxel_color']
+        # World lighting & color - scalars
+        theme = Volume.themes[theme]
+        self.color = theme['color']
         self.light_intensity = theme['light_intensity']
         self.fog_intensity = theme['fog_intensity']
         self.light_source_position = theme['light_source_position']
-
-        self.resolution = resolution
-        self.zoom = zoom
         self.show_light_source = show_light_source
-        self.time_render = time_render
+
+        # Background
+        self.transparent = transparent if transparent is not None else False
         self.dark_bg = dark_bg
-        self.ao_matrix = precompute_ambient_occlusion(voxel_matrix, self.size)
+
+        # World lighting & color - matrices
         self.color_matrix = color_matrix if color_matrix is not None else np.zeros((self.size, self.size, self.size, 3), dtype=np.uint8)
         self.transparency_matrix = transparency_matrix if transparency_matrix is not None else np.ones((self.size, self.size, self.size), dtype=np.float32)
-        self.specularity_matrix = specularity_matrix if specularity_matrix is not None else np.zeros((self.size, self.size, self.size), dtype=np.float32)
+        self.specularity_matrix = specularity_matrix if specularity_matrix is not None else np.zeros((self.size, self.size, self.size), dtype=np.float32)        
+        self.ao_matrix = precompute_ambient_occlusion(voxel_matrix, self.size)
 
-        self.transparent = transparent if transparent is not None else False
-        self.singleton = singleton if singleton is not None else None
-        self.singleton_color = singleton_color if singleton_color is not None else None
+        # Image rendering
+        self.viewing_angle = viewing_angle
+        self.resolution = resolution
+        self.zoom = zoom
+
+        # Debug & performance
+        self.timeit = timeit
 
     def update(self, world_attributes):
         for key, value in world_attributes.items():
             setattr(self, key, value)
 
-    def render(self, viewing_angle=(45, 30)):
-        if self.time_render:
+    def show(self):
+        self.render().show()
+
+    def render(self, viewing_angle=None):
+        if self.timeit:
             start_time = time.time()
+        
+        if viewing_angle is None:
+            viewing_angle = self.viewing_angle
 
         angle_x, angle_y = viewing_angle
         angle_x_rad = np.radians(angle_x)
@@ -113,8 +131,8 @@ class VoxelWorld:
 
         img_size = int(self.size * self.resolution * self.zoom * 2)
         margin = int(self.size * self.resolution * self.zoom)        
-        if self.transparent or self.singleton is not None:
-            bg_color = (255, 255, 255, 0) # transparent background for single voxel drawings
+        if self.transparent:
+            bg_color = (0, 0, 0, 0) # transparent background for single voxel drawings
         else:
             bg_color = (50, 50, 50, 255) if self.dark_bg else (220, 220, 220, 255)
         image = Image.new('RGBA', (img_size + margin, img_size + margin), bg_color)
@@ -128,26 +146,21 @@ class VoxelWorld:
         offset_x = (img_size + margin) // 2 - int(center_x)
         offset_y = (img_size + margin) // 2 - int(center_y)
 
-        if self.singleton is None:
-            for x in range(self.size):
-                for y in range(self.size):
-                    self.render_col(draw, x, y, angle_x_rad, angle_y_rad, offset_x, offset_y)
-        else:
-            print('Drawing singleton')
-            x, y, z = self.singleton
-            self.draw_voxel(draw, x, y, z, self.singleton_color, 1, 1, angle_x_rad, angle_y_rad, offset_x, offset_y)
+        for x in range(self.size):
+            for y in range(self.size):
+                self.render_col(draw, x, y, angle_x_rad, angle_y_rad, offset_x, offset_y)
 
-        if self.fog_intensity > 0 and self.singleton is None:
+        if self.fog_intensity > 0:
             image = self.apply_fog(image)
 
-        if self.show_light_source and self.singleton is None:
+        if self.show_light_source:
             image = self.add_light_source_sphere(image, offset_x, offset_y)
 
         bbox = image.getbbox()
         if bbox:
             image = image.crop(bbox)
 
-        if self.time_render:
+        if self.timeit:
             elapsed_time = time.time() - start_time
             print(f"Rendering time: {elapsed_time:.2f} seconds")
 
@@ -158,11 +171,11 @@ class VoxelWorld:
             if self.world[x, y, z] > 0:
                 ao = self.ao_matrix[x, y, z]
                 brightness = int((1.0 - ao) * 255 * self.light_intensity)
-                base_color = tuple(min(255, int(c * brightness / 255)) for c in self.voxel_color)
-                voxel_color = tuple(self.color_matrix[x, y, z]) if np.any(self.color_matrix[x, y, z]) else base_color
+                base_color = tuple(min(255, int(c * brightness / 255)) for c in self.color)
+                color = tuple(self.color_matrix[x, y, z]) if np.any(self.color_matrix[x, y, z]) else base_color
                 transparency = self.transparency_matrix[x, y, z]
                 specularity = self.specularity_matrix[x, y, z]
-                self.draw_voxel(draw, x, y, z, voxel_color, transparency, specularity, angle_x_rad, angle_y_rad, offset_x, offset_y)
+                self.draw_voxel(draw, x, y, z, color, transparency, specularity, angle_x_rad, angle_y_rad, offset_x, offset_y)
 
     def draw_voxel(self, draw, x, y, z, color, transparency, specularity, angle_x_rad, angle_y_rad, offset_x, offset_y):
         ox = int((x - y) * np.cos(angle_x_rad) * self.resolution * self.zoom + offset_x)
@@ -205,6 +218,62 @@ class VoxelWorld:
         draw.ellipse([light_position_x + offset_x - sphere_radius, light_position_y + offset_y - sphere_radius, light_position_x + offset_x + sphere_radius, light_position_y + offset_y + sphere_radius], fill=light_color)
         return image
 
+    def add(self, foreground_world):
+        """
+        Overlay 2 images of the same size.
+        Foreground will likely have a transparent background.
+        Use to render voxel surfaces onto worlds.
+        """
+        fg = foreground_world.render()
+        bg_cp = self.render().copy() # background copy
+
+        bg_cp.paste(fg, (0, 0), fg)
+
+        return bg_cp
+
+    def rotate(self, angle):
+        """
+        Rotate volume around its center axis
+        """
+        voxel_matrix = self.world
+        size = voxel_matrix.shape[0]
+        rotated_matrix = np.zeros_like(voxel_matrix)
+        angle_rad = np.radians(angle)
+        cos_angle = np.cos(angle_rad)
+        sin_angle = np.sin(angle_rad)
+
+        for x in range(size):
+            for y in range(size):
+                for z in range(size):
+                    if (voxel_matrix[x, y, z] > 0):
+                        new_x = int(x * cos_angle - z * sin_angle)
+                        new_z = int(x * sin_angle + z * cos_angle)
+                        if 0 <= new_x < size and 0 <= new_z < size:
+                            rotated_matrix[new_x, y, new_z] = 1
+        self.world = rotated_matrix
+
+    def byte_stream(self):
+        """
+        One-shot convenience method for visualizing (small) 3d numpy arrays.
+        Returns image as a byte stream.
+
+        Usage:
+        VoxelWorld.Volume(voxel_matrix).byte_stream()
+        """
+
+        image = self.world.render()
+        image = image.convert('RGBA')
+
+        byte_stream = io.BytesIO()
+        image.save(byte_stream, format='PNG')
+        byte_stream.seek(0)
+        return byte_stream
+
+    @staticmethod
+    def purlin_matrix(size=16):
+        noise = vnoise.Noise()
+        return np.array([[[1 if noise.noise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(size)] for y in range(size)] for x in range(size)], dtype=np.uint8)
+
     @staticmethod
     def show_themes():
         size = 8
@@ -219,13 +288,12 @@ class VoxelWorld:
                             voxel_matrix[x, y, z] = 1
             return voxel_matrix
 
-        viewing_angle = (45, 30)
         images = []
 
-        for theme_name in VoxelWorld.themes.keys():
+        for theme in Volume.themes.keys():
             voxel_matrix = generate_perlin_voxel_world(size)
-            world = VoxelWorld(voxel_matrix, theme_name, resolution=10, zoom=1.5, dark_bg=False)
-            image = world.render(viewing_angle)
+            world = Volume(voxel_matrix, theme, resolution=10, zoom=1.5, dark_bg=False)
+            image = world.render()
             images.append(image)
 
         # Create a 4x4 grid of subplots
@@ -234,86 +302,286 @@ class VoxelWorld:
         # Flatten the 2D array of subplots into a 1D array
         axs = axs.flatten()
 
-        for ax, img, theme_name in zip(axs, images, VoxelWorld.themes.keys()):
+        for ax, img, theme in zip(axs, images, Volume.themes.keys()):
             ax.imshow(img)
             ax.axis('off')
-            ax.set_title(theme_name)
+            ax.set_title(theme)
 
         plt.show()
 
         plt.show()
 
-    class Animations:
-        @staticmethod
-        def create_voxel_img(voxel_matrix,
-                            theme_name, resolution=2,
-                            viewing_angle=(45, 30),
-                            zoom=1.0,
-                            show_light_source=False,
-                            time_render=False,
-                            dark_bg=False,
-                            color_matrix=None,
-                            transparency_matrix=None,
-                            specularity_matrix=None,
-                            transparent=False,
-                            singleton = None,
-                            singleton_color = (180, 100, 100)):
+class Surface(Volume):
+    def __init__(self, volume):
+        """
+        Initialize a Surface from a Volume instance.
+        """
+        self.__dict__.update(volume.__dict__)
+        self.size_x, self.size_y, self.size_z = self.world.shape
 
-            world = VoxelWorld(voxel_matrix, theme_name, resolution, zoom, show_light_source, time_render, dark_bg, color_matrix, transparency_matrix, specularity_matrix, transparent, singleton, singleton_color)
-            image = world.render(viewing_angle)
-            image = image.convert('RGBA')
+        self.transparent = True # In general, surface renders won't have backgrounds
+                                # because they will be overlaid on volume renders
 
-            byte_stream = io.BytesIO()
-            image.save(byte_stream, format='PNG')
-            byte_stream.seek(0)
-            return byte_stream
+        voxel_world_surface = np.zeros((self.size_x, self.size_y), dtype=int)
 
-        @staticmethod
-        def gen_gif(stack,
-                    theme_name,
-                    resolution=2,
-                    viewing_angle=(45, 30),
-                    zoom=1.0,
-                    show_light_source=False,
-                    dark_bg=False,
-                    color_matrix_stack=None,
-                    transparency_matrix_stack=None,
-                    specularity_matrix_stack=None,
-                    transparent=False,
-                    singleton = None,
-                    singleton_color = (180, 100, 100)):
+        for x in range(self.size_x):
+            for y in range(self.size_y):
+                for z in range(self.size_z - 1, -1, -1):
+                    if self.world[x, y, z] > 0:
+                        voxel_world_surface[x, y] = z + 1
+                        break
 
-            images = []
-            for i, voxel_matrix in enumerate(stack):
-                color_matrix = color_matrix_stack[i] if color_matrix_stack is not None else None
-                transparency_matrix = transparency_matrix_stack[i] if transparency_matrix_stack is not None else None
-                specularity_matrix = specularity_matrix_stack[i] if specularity_matrix_stack is not None else None
-                byte_stream = VoxelWorld.Animations.create_voxel_img(voxel_matrix, theme_name, resolution, viewing_angle, zoom, show_light_source, False, dark_bg, color_matrix, transparency_matrix, specularity_matrix, transparent, singleton, singleton_color)
-                image = Image.open(byte_stream)
-                images.append(image)
+        self.topology = voxel_world_surface
 
-            gif_byte_stream = io.BytesIO()
-            images[0].save(gif_byte_stream, format='GIF', save_all=True, append_images=images[1:], loop=0, duration=100)
-            gif_byte_stream.seek(0)
-            return gif_byte_stream
+        self.world = self.surface_world()
+    
+    def surface_world(self, mask3d=None):
+        """
+        Returns a 3d numpy surface defined by a 2d (x, y) matrix of z values.
+        The surface thickness does not exceed a single voxel.
+        """
+        surface_world = np.zeros(self.world.shape)
 
-        @staticmethod
-        def rotate_voxel_matrix(voxel_matrix, angle):
-            size = voxel_matrix.shape[0]
-            rotated_matrix = np.zeros_like(voxel_matrix)
-            angle_rad = np.radians(angle)
-            cos_angle = np.cos(angle_rad)
-            sin_angle = np.sin(angle_rad)
+        matrix = self.topology
 
-            for x in range(size):
-                for y in range(size):
-                    for z in range(size):
-                        if (voxel_matrix[x, y, z] > 0):
-                            new_x = int(x * cos_angle - z * sin_angle)
-                            new_z = int(x * sin_angle + z * cos_angle)
-                            if 0 <= new_x < size and 0 <= new_z < size:
-                                rotated_matrix[new_x, y, new_z] = 1
-            return rotated_matrix
+        # Build the surface in 3d space
+        for i in range(matrix.shape[0]):  # Iterate over rows
+            for j in range(matrix.shape[1]):  # Iterate over columns
+                surface_world[i, j, int(matrix[i, j])-1] = 1
+    
+        # Apply the 3d mask
+        if mask3d is not None:
+            nz_X, nz_Y, nz_Z = np.nonzero(mask3d)         
+            surface_world = surface_world * mask3d
 
-def display_gif(gif_byte_stream):
-    display(IPImage(data=gif_byte_stream.getvalue()))
+        return surface_world
+
+class Agent(Surface):
+    def __init__(self, surface, mask=None, color=(255, 0, 0)):
+        """
+        Initialize a surface-inhabiting agent from a Surface instance.
+        Usage: agent = Agent(surf)
+        """
+        self.__dict__.update(surface.__dict__)
+
+        if mask is None:
+            # Agent defaults to entire surface
+            mask = np.ones(self.topology.shape)
+            mask3d = np.ones(self.world.shape)
+        else:
+            assert(mask.shape == self.topology.shape)
+            mask3d = np.zeros(self.world.shape)
+
+            allowed_z_values = mask * self.topology
+            for i in range(allowed_z_values.shape[0]):
+                for j in range(allowed_z_values.shape[1]):
+                    if allowed_z_values[i, j] > 0:
+                        mask3d[i, j, allowed_z_values[i, j]-1] = 1
+
+        self.color = color
+        self.mask = mask
+        self.world = self.surface_world(mask3d)
+
+    def cell(self, x, y, color=(255, 0, 0)):
+        """
+        Create a world for a single voxel cell
+        Usage: Place a single voxel on the world surface at coordinates 10,10:
+        agent = Agent(surf).cell(10,10)
+        """
+        mask3d = np.zeros(self.world.shape)
+        mask3d[x, y, self.topology[x, y]-1] = 1
+
+        mask = np.zeros(self.topology.shape)
+        mask[x, y] = 1
+
+        self.color = color
+        self.mask = mask
+        self.world = self.surface_world(mask3d)
+
+        return self
+
+class Sequence:
+    def __init__(self, worlds, timeit=False):
+        """
+        Usage:
+
+        from voxel_world import Sequence, Volume
+        
+        volumes = [Volume(viewing_angle=(45, 30+(i*10))) for i in range(10)]    
+
+        Sequence(volumes).render()
+        """
+
+        self.worlds = worlds
+        self.timeit = timeit
+        self.frames = [world.render() for world in self.worlds]
+    
+    def apply_bg(self, bg):
+        """
+        Apply a background world to a Sequence
+        """
+
+        # Understand if background is an image, Sequence of images, etc
+        match type(bg).__name__:
+            case 'Sequence':
+                # TODO For dynamic backgrounds
+                pass            
+            case 'Volume':
+                # For static backgrounds
+                bg_im = bg.render() # background copy
+
+                new_frames = []
+                for i, frame in enumerate(self.frames):
+                    frame_w_background = bg_im.copy()
+                    frame_w_background.paste(frame, (0, 0), frame)
+                    new_frames.append(frame_w_background)
+
+        seq_w_bg = copy.deepcopy(self)
+        seq_w_bg.frames = new_frames
+
+        return seq_w_bg
+       
+    def render(self):
+        """
+        Return a GIF byte stream from self.frames
+        """
+        gif_stream = self.frames_to_gif_stream()
+        return gif_stream
+
+    def frames_to_gif_stream(self):
+        frames = self.frames
+        gif_stream = io.BytesIO()
+        frames[0].save(gif_stream, format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=100)
+        gif_stream.seek(0)
+        return gif_stream
+
+    def save(self, filename='voxel_animation.gif'):
+        frames = self.frames
+        frames[0].save(filename, format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=100)
+
+    def jupyter(self):
+        gif_stream = self.frames_to_gif_stream()
+        display(IPImage(data=gif_stream.getvalue()))
+    
+    def mpl(self):
+        fig, ax = plt.subplots()
+        ims = []
+        for frame in self.frames:
+            ims.append([plt.imshow(np.asarray(frame))])
+        ani = animation.ArtistAnimation(fig, ims, interval=50, repeat_delay=1000)
+        plt.show()
+
+    @staticmethod
+    def random_walk(num_steps=500, grid_size=16):
+        """
+        Returns coordinates for random walk Agent demo
+
+        Usage:
+        from voxel_world import Volume, Surface, Agent
+        surf = Surface(Volume())
+        agents = [Agent(surf).cell(x, y) for x, y in Sequence.random_walk()]
+        """
+        # Initialize the starting point (e.g., the center of the grid)
+        start_point = (grid_size // 2, grid_size // 2)
+
+        # Define the possible moves (up, down, left, right)
+        moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        # Initialize the list of walk coordinates with the starting point
+        walk_coordinates = [start_point]
+
+        # Generate the random walk
+        current_point = start_point
+        for _ in range(num_steps):
+            move = random.choice(moves)
+            next_point = (current_point[0] + move[0], current_point[1] + move[1])
+            
+            # Ensure the next point is within the grid boundaries
+            if 0 <= next_point[0] < grid_size and 0 <= next_point[1] < grid_size:
+                walk_coordinates.append(next_point)
+                current_point = next_point
+
+        return walk_coordinates
+    
+    @staticmethod
+    def snake(topology, num_steps=500, grid_size=16):
+        """
+        Returns coordinates for snake Agent demo
+
+        Usage:
+        from voxel_world import Volume, Surface, Agent
+        surf = Surface(Volume())
+        agents = [Agent(surf, mask) for mask in Sequence.snake()]
+        """
+        
+        # Initialize the grid
+        grid = np.zeros((grid_size, grid_size), dtype=int)
+
+        # Initialize the snake as a list of tuples (starting in the center)
+        snake = [(grid_size // 2, grid_size // 2)]
+        grid[snake[0]] = 1
+
+        # Function to place food on the grid
+        def place_food(grid, snake):
+            while True:
+                food_position = (random.randint(0, grid_size - 1), random.randint(0, grid_size - 1))
+                if food_position not in snake:
+                    grid[food_position] = 1
+                    return food_position
+
+        # Place the first food
+        food_position = place_food(grid, snake)
+
+        # Define the possible moves (up, down, left, right)
+        moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        # Initialize a list to store the evolution of the grid
+        grid_evolution = [grid.copy()]
+
+        # Function to get the next move towards the food
+        def get_next_move(snake, food_position, topology):
+            head = snake[0]
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+            valid_moves = []
+            
+            for direction in directions:
+                next_position = (head[0] + direction[0], head[1] + direction[1])
+                if (0 <= next_position[0] < grid_size and 
+                    0 <= next_position[1] < grid_size and 
+                    next_position not in snake):
+                    height_diff = abs(topology[next_position] - topology[head])
+                    manhattan_dist = abs(next_position[0] - food_position[0]) + abs(next_position[1] - food_position[1])
+                    valid_moves.append((next_position, direction, height_diff, manhattan_dist))
+            
+            if not valid_moves:
+                return None, None
+            
+            # First sort by height difference, then by Manhattan distance to the food
+            valid_moves.sort(key=lambda x: (x[2], x[3]))
+            next_move = valid_moves[0]
+            return next_move[0], next_move[1]
+
+        # Simulate the game of Snake
+        for _ in range(num_steps):
+            next_position, move = get_next_move(snake, food_position, topology)
+            if next_position is None:
+                # No valid moves, game over
+                break
+
+            # Move the snake
+            snake.insert(0, next_position)
+            if next_position == food_position:
+                # Place new food if the snake eats the current food
+                food_position = place_food(grid, snake)
+            else:
+                # Remove the tail if no food is eaten
+                tail = snake.pop()
+                grid[tail] = 0
+            
+            # Update the grid with the new snake position
+            grid[next_position] = 1
+            
+            # Store the current state of the grid
+            grid_evolution.append(grid.copy())
+        
+        return grid_evolution

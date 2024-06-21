@@ -16,6 +16,8 @@ bin/pip
 bin/pip3
 bin/pip3.11
 dist/.DS_Store
+dist/voxel_world-0.0.7-py2.py3-none-any.whl
+dist/voxel_world-0.0.7.tar.gz
 examples/jill_of_the_jungle.py
 examples/light_source.py
 examples/sand_world.py
