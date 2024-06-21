@@ -61,8 +61,17 @@ seq2 = seq.apply_bg(volume)
 
 seq2.save('voxel_animation64_v2.gif')
 ```
-
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/voxel_animation64.gif?raw=true">
+
+## Surfaces API
+
+```
+from voxel_world import Volume, Surface;
+volume = Volume(Volume.purlin_matrix(32)); surf = Surface(volume)
+surf.color = (255,0,0)
+volume.add(surf).show()
+```
+![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/30d0d2f8-8f7b-426c-b394-d18ca2c47c93)
 
 ## Randomly generated worlds
 
