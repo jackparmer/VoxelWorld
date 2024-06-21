@@ -78,19 +78,19 @@ display(IPImage(Volume(
 
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/cc435d8b-e5c0-4bab-88b3-f66de29a48a3)
 
-## [examples/sandworld.py](examples/sand_world.py)
+## [examples/color_matrix/sand_world.py](examples/color_matrix/sand_world.py)
 
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/f2a61fae-5133-4e2c-8bf9-71e69c1d0948)
 
-## [examples/light_source.py](examples/light_source.py)
+## [examples/lighting/light_source.py](examples/lighting/light_source.py)
 
 ![download (1)](https://github.com/jackparmer/VoxelWorld/assets/1865834/d86f3e6a-322a-4273-8260-fc41fb215eaf)
 
-## [examples/jill_of_the_jungle.py](examples/jill_of_the_jungle.py)
+## [examples/color_matrix/jill_of_the_jungle.py](examples/color_matrix/jill_of_the_jungle.py)
 
 ![jill_of_the_jungle](https://github.com/jackparmer/VoxelWorld/assets/1865834/820494a5-452f-4f87-b6c7-bbe4abc3e65e)
 
-## [examples/earth_tones.py](examples/earth_tones.py)
+## [examples/color_matrix/earth_tones.py](examples/color_matrix/earth_tones.py)
 
 ![earth_tones](https://github.com/jackparmer/VoxelWorld/assets/1865834/1cffc6bf-a07c-4804-86fa-783dae51b3b6)
 
