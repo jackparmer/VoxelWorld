@@ -261,7 +261,7 @@ class Volume:
         VoxelWorld.Volume(voxel_matrix).byte_stream()
         """
 
-        image = self.world.render()
+        image = self.render()
         image = image.convert('RGBA')
 
         byte_stream = io.BytesIO()
