@@ -504,7 +504,7 @@ class Sequence:
         return walk_coordinates
     
     @staticmethod
-    def snake(topology, num_steps=500, grid_size=16):
+    def snake(num_steps=500, grid_size=16):
         """
         Returns coordinates for snake Agent demo
 
@@ -548,18 +548,16 @@ class Sequence:
                 next_position = (head[0] + direction[0], head[1] + direction[1])
                 if (0 <= next_position[0] < grid_size and 
                     0 <= next_position[1] < grid_size and 
-                    next_position not in snake):
-                    height_diff = abs(topology[next_position] - topology[head])
-                    manhattan_dist = abs(next_position[0] - food_position[0]) + abs(next_position[1] - food_position[1])
-                    valid_moves.append((next_position, direction, height_diff, manhattan_dist))
+                    next_position not in snake and
+                    abs(topology[next_position] - topology[head]) <= 2):
+                    valid_moves.append((next_position, direction))
             
             if not valid_moves:
                 return None, None
             
-            # First sort by height difference, then by Manhattan distance to the food
-            valid_moves.sort(key=lambda x: (x[2], x[3]))
-            next_move = valid_moves[0]
-            return next_move[0], next_move[1]
+            # Choose the move that minimizes the Manhattan distance to the food
+            next_move = min(valid_moves, key=lambda x: abs(x[0][0] - food_position[0]) + abs(x[0][1] - food_position[1]))
+            return next_move
 
         # Simulate the game of Snake
         for _ in range(num_steps):
