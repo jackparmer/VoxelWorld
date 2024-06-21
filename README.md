@@ -3,7 +3,7 @@ Create delicious Voxel worlds in Python
 
 [Live demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
 
-<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/8c323677-ab78-4e0b-a976-d35c74d7389d">
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/680dcde4-299e-4508-8cb7-1779831b1b98">
 
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/917f38ac-dd26-4419-9725-0693ca05aaa1">
 
@@ -52,21 +52,22 @@ Known issues (TODO)
 [Live demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
 
 ```py
-import random
-import numpy as np
-from noise import pnoise3
-from voxel_world import VoxelWorld
-from IPython.display import display, Image as IPImage # Jupyter notebook
+import random; import vnoise
+from IPython.display import display, Image as IPImage
+from voxel_world import Volume
 
-display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
-    np.array([[[1 if pnoise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(16)] for y in range(16)] for x in range(16)], dtype=np.uint8),
-    random.choice(list(VoxelWorld.themes.keys())),
+noise = vnoise.Noise()
+
+# Display in Juypter
+display(IPImage(Volume(
+    np.array([[[1 if noise.noise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(16)] for y in range(16)] for x in range(16)], dtype=np.uint8),
+    theme=random.choice(list(Volume.themes.keys())),
     resolution=10,
     viewing_angle=(random.randint(0, 90), random.randint(0, 90)),
     zoom=2.0,
     show_light_source=False,
     dark_bg=False
-).getvalue()))
+).byte_stream().getvalue()))
 ```
 
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/25bd612e-b8e9-42ed-91b4-014921173900)
@@ -96,8 +97,8 @@ display(IPImage(data=VoxelWorld.Animations.create_voxel_img(
 ## Mono-color themes
 
 ```py
-from voxel_world import VoxelWorld
+from voxel_world import Volume
 
-world = VoxelWorld.show_themes() # Jupyter notebook only
+world = Volume.show_themes() # Jupyter notebook only
 ```
 ![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/ab7eca82-5b20-4b7e-bbae-a2e8350b4611)
