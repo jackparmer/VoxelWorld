@@ -54,7 +54,7 @@ from voxel_world import Volume, Surface, Agent, Sequence
 
 volume = Volume(Volume.purlin_matrix(64));
 surf = Surface(volume);
-agents = [Agent(surf, mask) for mask in Sequence.snake(surf.topology, grid_size=64, num_steps=1000)];
+agents = [Agent(surf, mask) for mask in Sequence.snake(grid_size=64, num_steps=1000)];
 seq = Sequence(agents);
 
 seq2 = seq.apply_bg(volume)
