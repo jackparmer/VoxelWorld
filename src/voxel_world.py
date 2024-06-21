@@ -504,7 +504,7 @@ class Sequence:
         return walk_coordinates
     
     @staticmethod
-    def snake(num_steps=500, grid_size=16):
+    def snake(topology, num_steps=500, grid_size=16):
         """
         Returns coordinates for snake Agent demo
 
