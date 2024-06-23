@@ -7,6 +7,7 @@ from IPython.display import display, Image as IPImage
 import vnoise
 import random
 import copy
+import time
 
 def calculate_ambient_occlusion(world, size, x, y, z):
     directions = [
@@ -107,6 +108,7 @@ class Volume:
         self.viewing_angle = viewing_angle
         self.resolution = resolution
         self.zoom = zoom
+        self.image_cache = None
 
         # Debug & performance
         self.timeit = timeit
@@ -118,8 +120,12 @@ class Volume:
     def show(self):
         self.render().show()
 
-    def render(self, viewing_angle=None):
-        if self.timeit:
+    def jupyter(self):
+        display.Image(self.byte_stream().getvalue())
+
+    def render(self, viewing_angle=None, timeit=False):
+
+        if self.timeit or timeit:
             start_time = time.time()
         
         if viewing_angle is None:
@@ -164,6 +170,8 @@ class Volume:
             elapsed_time = time.time() - start_time
             print(f"Rendering time: {elapsed_time:.2f} seconds")
 
+        self.image_cache = image
+
         return image
 
     def render_col(self, draw, x, y, angle_x_rad, angle_y_rad, offset_x, offset_y):
@@ -183,6 +191,8 @@ class Volume:
 
         size = int(self.resolution * self.zoom)
         color_with_transparency = tuple(int(c * transparency) for c in color) + (int(255 * transparency),)
+
+        self.voxel_size = size
 
         draw.polygon([
             (ox, oy),
@@ -223,9 +233,15 @@ class Volume:
         Overlay 2 images of the same size.
         Foreground will likely have a transparent background.
         Use to render voxel surfaces onto worlds.
+
+        :returns: PIL Image
         """
         fg = foreground_world.render()
-        bg_cp = self.render().copy() # background copy
+
+        if self.image_cache is not None:
+            bg_cp = self.image_cache.convert('RGBA')
+        else:
+            bg_cp = self.render().copy() # background copy
 
         bg_cp.paste(fg, (0, 0), fg)
 

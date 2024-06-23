@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: voxel_world
-Version: 0.1.1
+Version: 0.1.2
 Summary: Delicious Voxel worlds in Python
 Author-email: JP <jack.parmer@pm.me>
 Requires-Python: >=3.7
@@ -68,7 +68,7 @@ from voxel_world import Volume, Surface, Agent, Sequence
 
 volume = Volume(Volume.purlin_matrix(64));
 surf = Surface(volume);
-agents = [Agent(surf, mask) for mask in Sequence.snake(surf.topology, grid_size=64, num_steps=1000)];
+agents = [Agent(surf, mask) for mask in Sequence.snake(grid_size=64, num_steps=1000)];
 seq = Sequence(agents);
 
 seq2 = seq.apply_bg(volume)

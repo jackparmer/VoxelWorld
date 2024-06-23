@@ -5,7 +5,6 @@ pyproject.toml
 pyvenv.cfg
 voxel_animation.gif
 voxel_animation64.gif
-voxel_animation64_v2.gif
 .github/workflows/python-package.yml
 .ipynb_checkpoints/Untitled-checkpoint.ipynb
 .ipynb_checkpoints/Untitled1-checkpoint.ipynb
@@ -1489,7 +1488,6 @@ lib/python3.11/site-packages/setuptools/config/_validate_pyproject/__pycache__/f
 lib/python3.11/site-packages/setuptools/extern/__init__.py
 lib/python3.11/site-packages/setuptools/extern/__pycache__/__init__.cpython-311.pyc
 src/__init__.py
-src/earth_tones.py
 src/voxel_world.py
 src/__pycache__/voxel_world.cpython-311.pyc
 src/voxel_world.egg-info/PKG-INFO
