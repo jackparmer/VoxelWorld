@@ -4,7 +4,7 @@ import numpy as np
 from pygame.locals import *
 from voxel_world import Volume, Surface, Agent
 
-SIZE = 32
+SIZE = 48
 SCALE = SIZE//16
 WIN_WIDTH = 400*SCALE
 WIN_HEIGHT = 300*SCALE
