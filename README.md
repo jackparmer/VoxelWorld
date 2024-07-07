@@ -6,8 +6,6 @@
 
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/680dcde4-299e-4508-8cb7-1779831b1b98">
 
-<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/917f38ac-dd26-4419-9725-0693ca05aaa1">
-
 ## Install
 
 ### From PyPi
@@ -28,13 +26,10 @@ from voxel_world import VoxelWorld
 
 For physics simulation, computer vision, games, art, whatever
 
-Inspo: https://github.com/wwwtyro/vixel
-
 Features!
 - Automatic GIF generation
-- Numpy 3d ones array in -> Voxel world out
-- Fast-ish (as fast as rendering on the CPU can be)
-- Portable! Outputs simple image files
+- Simple! Numpy 3d ones array in -> Voxel world out
+- Portable! Outputs images or standalone HTML files with [Vixel](https://github.com/wwwtyro/vixel)
 - Notebooks! Works well in the Jupyter notebook ecosystem
 - Eye candy! [Ambient occlusion](https://en.wikipedia.org/wiki/Ambient_occlusion), ray tracing from Vixel, etc
 
@@ -42,13 +37,39 @@ Features!
 
 # Examples
 
+## Surfaces API
+
+```
+from voxel_world import Volume, Surface;
+volume = Volume(Volume.purlin_matrix(32)); surf = Surface(volume)
+surf.color = (255,0,0)
+volume.add(surf).show()
+```
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/4a9c5f99-4ff2-441b-9086-fac3c4e7132a">
+
+## Random world
+
+[Demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
+
+```py
+import random
+from voxel_world import Volume
+
+Volume(
+    Volume.purlin_matrix(16),
+    theme=random.choice(list(Volume.themes.keys())),
+    viewing_angle=(random.randint(0, 90), random.randint(0, 90)),
+).render().show()
+```
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/80ad3ed5-15f2-427f-9608-72a46b07e932">
+
 ## Ray tracing + WebGL renderer
 
 ```py
 from voxel_world import Volume, Vixel; vw = Volume(); vix = Vixel(vw); vix.html()
 ```
 
-<img width="757" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/90826a0c-6d74-4956-acd1-fa230a79c9da">
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/90826a0c-6d74-4956-acd1-fa230a79c9da">
 
 ## Animations
 
@@ -66,37 +87,9 @@ seq2.save('voxel_animation64_v2.gif')
 ```
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/voxel_animation64.gif?raw=true">
 
-## Surfaces API
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/compression_animation.gif?raw=true">
 
-```
-from voxel_world import Volume, Surface;
-volume = Volume(Volume.purlin_matrix(32)); surf = Surface(volume)
-surf.color = (255,0,0)
-volume.add(surf).show()
-```
-<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/4a9c5f99-4ff2-441b-9086-fac3c4e7132a">
-
-## Randomly generated worlds
-
-[Live demo on Py.Cafe ☕](https://py.cafe/jackparmer/voxel-worlds)
-
-```py
-import random; import vnoise
-import numpy as np
-from voxel_world import Volume
-noise = vnoise.Noise()
-
-Volume(
-    np.array([[[1 if noise.noise3(x / 10.0, y / 10.0, z / 10.0) > random.uniform(-0.2, 0.2) else 0 for z in range(16)] for y in range(16)] for x in range(16)], dtype=np.uint8),
-    theme=random.choice(list(Volume.themes.keys())),
-    resolution=10,
-    viewing_angle=(random.randint(0, 90), random.randint(0, 90)),
-    zoom=2.0,
-    show_light_source=False,
-    dark_bg=False
-).render().show()
-```
-<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/80ad3ed5-15f2-427f-9608-72a46b07e932">
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/917f38ac-dd26-4419-9725-0693ca05aaa1">
 
 ## [examples/color_matrix/sand_world.py](examples/color_matrix/sand_world.py)
 
