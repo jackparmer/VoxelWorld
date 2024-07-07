@@ -87,7 +87,7 @@ seq2.save('voxel_animation64_v2.gif')
 ```
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/voxel_animation64.gif?raw=true">
 
-<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/compression_animation.gif?raw=true">
+<img width="500" alt="image" src="https://github.com/jackparmer/VoxelWorld/blob/main/compression_animation.gif?raw=true">
 
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/917f38ac-dd26-4419-9725-0693ca05aaa1">
 
@@ -99,3 +99,8 @@ seq2.save('voxel_animation64_v2.gif')
 
 <img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/d86f3e6a-322a-4273-8260-fc41fb215eaf">
 
+#### Publishing to pip
+```sh
+python3 -m build
+python3 -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+```
