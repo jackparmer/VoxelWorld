@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from PIL import Image, ImageDraw, ImageSequence
 from IPython.display import display, Image as IPImage
-import vnoise, binascii, textwrap, random, math, json, copy, time, pathlib, io, os
+import pathlib, binascii, textwrap, webbrowser
+import math, json, copy, time, vnoise, random, io, os
 
 def calculate_ambient_occlusion(world, size, x, y, z):
     directions = [
@@ -63,9 +64,9 @@ class Volume:
 
     def __init__(self, 
                 voxel_matrix=None,
-                viewing_angle=(45, 30),
+                viewing_angle=(30, 45),
                 theme='Lilac', 
-                resolution=10.0, 
+                resolution=50.0, 
                 zoom=1.0, 
                 show_light_source=False, 
                 timeit=False, 
@@ -136,7 +137,8 @@ class Volume:
         if self.transparent:
             bg_color = (0, 0, 0, 0) # transparent background for single voxel drawings
         else:
-            bg_color = (50, 50, 50, 255) if self.dark_bg else (220, 220, 220, 255)
+            # TODO: Magic color numbers
+            bg_color = (50, 50, 50, 255) if self.dark_bg else (178, 189, 199, 255)
         image = Image.new('RGBA', (img_size + margin, img_size + margin), bg_color)
         draw = ImageDraw.Draw(image)
 
@@ -187,29 +189,24 @@ class Volume:
 
         size = int(self.resolution * self.zoom)
         color_with_transparency = tuple(int(c * transparency) for c in color) + (int(255 * transparency),)
-
+        left_face_color = tuple(int(c / 2 * transparency) for c in color) + (int(255 * transparency),)
+        right_face_color = tuple(int(c / 3 * transparency) for c in color) + (int(255 * transparency),)
+    
         self.voxel_size = size
 
-        draw.polygon([
-            (ox, oy),
-            (ox + size, oy + size // 2),
-            (ox, oy + size),
-            (ox - size, oy + size // 2),
-        ], fill=color_with_transparency)
+        top_face = [(ox, oy), (ox + size, oy + size / 2), (ox, oy + size), (ox - size, oy + size / 2)]
+        left_face = [(ox, oy + size), (ox - size, oy + size / 2), (ox - size, oy + size + size / 2), (ox, oy + size * 2)]
+        right_face = [(ox, oy + size), (ox + size, oy + size / 2), (ox + size, oy + size + size / 2), (ox, oy + size * 2)]
 
-        draw.polygon([
-            (ox, oy + size),
-            (ox - size, oy + size // 2),
-            (ox - size, oy + size + size // 2),
-            (ox, oy + size + size // 2),
-        ], fill=tuple(int(c // 2 * transparency) for c in color) + (int(255 * transparency),))
+        # Top polygon (top face of the voxel)
+        draw.polygon(top_face, fill=color_with_transparency, outline='black')
 
-        draw.polygon([
-            (ox, oy + size),
-            (ox + size, oy + size // 2),
-            (ox + size, oy + size + size // 2),
-            (ox, oy + size + size // 2),
-        ], fill=tuple(int(c // 3 * transparency) for c in color) + (int(255 * transparency),))
+        # Left polygon (left face of the voxel)
+        draw.polygon(left_face, fill=left_face_color, outline='black')
+
+        # Right polygon (right face of the voxel)
+        draw.polygon(right_face, fill=right_face_color, outline='black')
+
 
     def apply_fog(self, image):
         fog_overlay = Image.new('RGBA', image.size, (220, 220, 220, int(255 * self.fog_intensity * 0.5)))
@@ -344,6 +341,87 @@ class Volume:
 
         plt.show()
 
+    @staticmethod
+    def merge_matrices(matrix1, matrix2):
+        # Ensure both matrices are of the same size
+        assert matrix1.shape == matrix2.shape, "Matrices must be of the same size"
+
+        # Create a result matrix by prioritizing non-zero elements from the first matrix
+        result_matrix = np.where(matrix1 != 0, matrix1, matrix2)
+
+        return result_matrix    
+
+class Axes(Volume):
+    """
+    World axis helpers
+    """
+    def __init__(self, volume, corners=True):
+        self.__dict__.update(volume.__dict__)
+        size_x, size_y, size_z = self.world.shape
+
+        matrix = np.zeros((size_x, size_y, size_z), dtype=int)
+
+        matrix[:, 0, 0] = 1  # x-axis
+        matrix[0, :, 0] = 1  # y-axis
+        matrix[0, 0, :] = 1  # z-axis
+
+        # Create a 3D matrix for colors with an additional dimension for RGB values
+        # Using dtype=object to store tuples
+        color_matrix = np.zeros((size_x, size_y, size_z), dtype=object)
+
+        # Initialize all elements to 0
+        color_matrix[:, :, :] = 0
+
+        # Set RGB values along the x, y, and z axes
+        for i in range(min(size_x, size_y, size_z)):
+            color_matrix[i, 0, 0] = (254, 1, 1)  # x-axis
+            color_matrix[0, i, 0] = (1, 254, 1)  # y-axis
+            color_matrix[0, 0, i] = (1, 1, 254)  # z-axis
+
+        self.transparent = True
+        self.world = matrix
+        self.color_matrix = color_matrix
+
+        if corners:
+            corners = Corners(self)
+            self.world = self.merge_matrices(corners.world, self.world)
+            self.color_matrix = self.merge_matrices(corners.color_matrix, self.color_matrix)
+
+class Corners(Volume):
+    """
+    Add corner markers (colorblind-friendly)
+    """
+    def __init__(self, volume):
+        self.__dict__.update(volume.__dict__)
+        size_x, size_y, size_z = self.world.shape
+
+        matrix = np.zeros((size_x, size_y, size_z), dtype=int)
+
+        # Set 1s in each corner
+        matrix[0, 0, 0] = 1
+        matrix[0, 0, -1] = 1
+        matrix[0, -1, 0] = 1
+        matrix[0, -1, -1] = 1
+        matrix[-1, 0, 0] = 1
+        matrix[-1, 0, -1] = 1
+        matrix[-1, -1, 0] = 1
+        matrix[-1, -1, -1] = 1
+
+        color_matrix = np.zeros((size_x, size_y, size_z), dtype=object)
+    
+        color_matrix[0, 0, 0] = (220, 162, 55)
+        color_matrix[0, 0, -1] = (111, 178, 228)
+        color_matrix[0, -1, 0] = (70, 156, 118)
+        color_matrix[0, -1, -1] = (238, 228, 97)
+        color_matrix[-1, 0, 0] = (48, 112, 173)
+        color_matrix[-1, 0, -1] = (193,	125, 165)
+        color_matrix[-1, -1, 0] = (193,	125, 165)
+        color_matrix[-1, -1, -1] = (0, 0, 0)
+
+        self.transparent = True
+        self.world = matrix
+        self.color_matrix = color_matrix
+
 class Vixel(Volume):
     """
     Render numpy-defined voxel worlds with Vixel
@@ -362,23 +440,29 @@ class Vixel(Volume):
 
     def __generate_javascript(self):
 
-        array_3d = self.world
+        # Vixel 
+        world = np.swapaxes(self.world, 2, 1)
+        color_matrix = np.swapaxes(self.color_matrix, 2, 1)
 
-        # Convert the NumPy array to a list
-        array_list = array_3d.tolist()
+        # Serialize ones matrix to a JSON string
+        ones_matrix_str = json.dumps(world.tolist())
 
-        # Serialize the list to a JSON string
-        json_str = json.dumps(array_list)
+        # Serialize color matrix
+        color_matrix_str = json.dumps(color_matrix.tolist())
 
         js_string = textwrap.dedent('''
 
             /* 🟢 EXTRACT MATRIX */
-            const jsonString = '{0}';
-            const matrix = JSON.parse(jsonString);
+            const jsonOnesMatrix = '{0}';
+            const matrix = JSON.parse(jsonOnesMatrix);
             console.log('3D array:', matrix);
+        
+            const jsonColorMatrix = '{1}'
+            const colorMatrix = JSON.parse(jsonColorMatrix);
+            console.log('color array:', colorMatrix);
 
             /* 🟢 INIT VIXEL */
-            const bounds = [{1}, {2}, {3}];
+            const bounds = [{2}, {3}, {4}];
             const vixel = new Vixel(canvas, ...bounds);
 
             /* 🟢 CAMERA */
@@ -397,15 +481,18 @@ class Vixel(Volume):
             // Bounds of the matrix
             const [matrixX, matrixY, matrixZ] = [matrix.length, matrix[0].length, matrix[0][0].length];
 
+            const baseColor = [12, 12, 24];
+
             // Set voxels based on the matrix values
             for (let x = 0; x < matrixX; x++) {{
                 for (let y = 0; y < matrixY; y++) {{
                     for (let z = 0; z < matrixZ; z++) {{
                         if (matrix[x][y][z] === 1) {{
+                            const color = getColor(colorMatrix, x, y, z, baseColor);
                             vixel.set(x, y, z, {{
-                                red: 12,
-                                green: 12,
-                                blue: 24
+                                red: color[0],
+                                green: color[1],
+                                blue: color[2],
                             }});
                         }}
                     }}
@@ -424,7 +511,8 @@ class Vixel(Volume):
             }}
             renderLoop();
         '''.format(
-            json_str, 
+            ones_matrix_str,
+            color_matrix_str,
             self.world.shape[0],
             self.world.shape[1],
             self.world.shape[2]
@@ -432,7 +520,7 @@ class Vixel(Volume):
 
         return js_string
 
-    def html(self, filename='vixel.html', return_html=False):
+    def html(self, filename='vixel.html', auto_open=True, return_html=False):
         """
         Save a standalone HTML file with a Vixel rendering.
         """
@@ -455,6 +543,9 @@ class Vixel(Volume):
         downloads_path = pathlib.Path(*pathlib.Path.home().parts + ('Downloads', filename))
 
         downloads_path.write_text(html)
+
+        if auto_open:
+            webbrowser.open('file://' + str(downloads_path), new = 0)
 
         if return_html:
             return html
