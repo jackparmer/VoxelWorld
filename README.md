@@ -1,5 +1,4 @@
 # VoxelWorld
-Delicious Voxel worlds in Python
 
 3d Numpy array in -> Voxel world out
 
@@ -75,8 +74,7 @@ volume = Volume(Volume.purlin_matrix(32)); surf = Surface(volume)
 surf.color = (255,0,0)
 volume.add(surf).show()
 ```
-![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/4a9c5f99-4ff2-441b-9086-fac3c4e7132a)
-
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/4a9c5f99-4ff2-441b-9086-fac3c4e7132a">
 
 ## Randomly generated worlds
 
@@ -98,13 +96,13 @@ Volume(
     dark_bg=False
 ).render().show()
 ```
-
-![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/80ad3ed5-15f2-427f-9608-72a46b07e932)
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/80ad3ed5-15f2-427f-9608-72a46b07e932">
 
 ## [examples/color_matrix/sand_world.py](examples/color_matrix/sand_world.py)
 
-![image](https://github.com/jackparmer/VoxelWorld/assets/1865834/f2a61fae-5133-4e2c-8bf9-71e69c1d0948)
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/f2a61fae-5133-4e2c-8bf9-71e69c1d0948">
 
 ## [examples/lighting/light_source.py](examples/lighting/light_source.py)
 
-![download (1)](https://github.com/jackparmer/VoxelWorld/assets/1865834/d86f3e6a-322a-4273-8260-fc41fb215eaf)
+<img width="800" alt="image" src="https://github.com/jackparmer/VoxelWorld/assets/1865834/d86f3e6a-322a-4273-8260-fc41fb215eaf">
+
