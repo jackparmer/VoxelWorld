@@ -1,6 +1,7 @@
 .DS_Store
 LICENSE
 README.md
+compression_animation.gif
 pyproject.toml
 pyvenv.cfg
 voxel_animation.gif
