@@ -1,13 +1,9 @@
 import numpy as np
-from PIL import Image, ImageDraw, ImageSequence
-import io
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from PIL import Image, ImageDraw, ImageSequence
 from IPython.display import display, Image as IPImage
-import vnoise
-import random
-import copy
-import time
+import vnoise, binascii, textwrap, random, math, json, copy, time, pathlib, io, os
 
 def calculate_ambient_occlusion(world, size, x, y, z):
     directions = [
@@ -325,7 +321,144 @@ class Volume:
 
         plt.show()
 
+    def show_angles(self):
+
+        images = []
+        angles = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+
+        for angle in angles:
+            self.rotate(angle)
+            image = self.render()
+            images.append(image)
+
+        # Create a 4x4 grid of subplots
+        fig, axs = plt.subplots(3, 3, figsize=(30, 30))
+
+        # Flatten the 2D array of subplots into a 1D array
+        axs = axs.flatten()
+
+        for ax, img, angle in zip(axs, images, angles):
+            ax.imshow(img)
+            ax.axis('off')
+            ax.set_title(str(angle))
+
         plt.show()
+
+class Vixel(Volume):
+    """
+    Render numpy-defined voxel worlds with Vixel
+    """    
+    def __init__(self, volume):
+        self.__dict__.update(volume.__dict__)
+
+    @staticmethod
+    def spherical_to_cartesian(azimuthal, elevation, r=1):
+        azimuthal = math.radians(azimuthal)
+        elevation = math.radians(elevation)
+        x = r * math.sin(azimuthal) * math.cos(elevation)
+        y = r * math.sin(azimuthal) * math.sin(elevation)
+        z = r * math.cos(azimuthal)
+        return x, y, z
+
+    def __generate_javascript(self):
+
+        array_3d = self.world
+
+        # Convert the NumPy array to a list
+        array_list = array_3d.tolist()
+
+        # Serialize the list to a JSON string
+        json_str = json.dumps(array_list)
+
+        js_string = textwrap.dedent('''
+
+            /* 🟢 EXTRACT MATRIX */
+            const jsonString = '{0}';
+            const matrix = JSON.parse(jsonString);
+            console.log('3D array:', matrix);
+
+            /* 🟢 INIT VIXEL */
+            const bounds = [{1}, {2}, {3}];
+            const vixel = new Vixel(canvas, ...bounds);
+
+            /* 🟢 CAMERA */
+            vixel.camera(
+                [60, 50, 50], // Camera position
+                [0.25, -0.785, 0.5], // Camera target
+                [0, 1, 0], // Up
+                Math.PI / 4 // Field of view
+            );
+
+            /* 🟢 DEPTH OF FIELD AND SUNLIGHT */
+            vixel.dof(0.5, 0.25);
+            vixel.sun(-17, (1.5 * Math.PI) / 2, -1, 0.5);
+
+            /* 🟢 SET VIXELS */
+            // Bounds of the matrix
+            const [matrixX, matrixY, matrixZ] = [matrix.length, matrix[0].length, matrix[0][0].length];
+
+            // Set voxels based on the matrix values
+            for (let x = 0; x < matrixX; x++) {{
+                for (let y = 0; y < matrixY; y++) {{
+                    for (let z = 0; z < matrixZ; z++) {{
+                        if (matrix[x][y][z] === 1) {{
+                            vixel.set(x, y, z, {{
+                                red: 12,
+                                green: 12,
+                                blue: 24
+                            }});
+                        }}
+                    }}
+                }}
+            }}
+
+            /* 🟢 RENDERING LOOP (RECURSIVE) */
+            let samples = 0;
+            function renderLoop() {{
+                vixel.sample(2);
+                vixel.display();
+                samples += 2;
+                if (samples < 2048) {{
+                    requestAnimationFrame(renderLoop);
+                }}
+            }}
+            renderLoop();
+        '''.format(
+            json_str, 
+            self.world.shape[0],
+            self.world.shape[1],
+            self.world.shape[2]
+        ))
+
+        return js_string
+
+    def html(self, filename='vixel.html', return_html=False):
+        """
+        Save a standalone HTML file with a Vixel rendering.
+        """
+
+        # Should return path of this module (eg /VoxelWorld/src)
+        p = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
+
+        # Navigate to HTML template file
+        template_path = pathlib.Path(*p.parts[:-1] + ('vixel','docs','index.html'))
+
+        with template_path.open(mode="r", encoding="utf-8") as html_file:
+            html = html_file.read()
+
+        html = html.replace(
+            '/*** 龴ↀ◡ↀ龴 REPLACE THIS LINE 龴ↀ◡ↀ龴 ***/', 
+            self.__generate_javascript()
+        )
+
+        # TODO: Revisit for Windows and internationalization
+        downloads_path = pathlib.Path(*pathlib.Path.home().parts + ('Downloads', filename))
+
+        downloads_path.write_text(html)
+
+        if return_html:
+            return html
+
 
 class Surface(Volume):
     def __init__(self, volume):

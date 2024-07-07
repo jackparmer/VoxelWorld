@@ -16,11 +16,15 @@ bin/pip
 bin/pip3
 bin/pip3.11
 dist/.DS_Store
+dist/voxel_world-0.1.2-py2.py3-none-any.whl
+dist/voxel_world-0.1.2.tar.gz
 examples/.DS_Store
 examples/color_matrix/earth_tones.py
 examples/color_matrix/jill_of_the_jungle.py
 examples/color_matrix/sand_world.py
 examples/lighting/light_source.py
+examples/pygame/arrow_keys.py
+examples/pygame/__pycache__/pygame.cpython-311.pyc
 lib/python3.11/site-packages/distutils-precedence.pth
 lib/python3.11/site-packages/_distutils_hack/__init__.py
 lib/python3.11/site-packages/_distutils_hack/override.py
@@ -1487,6 +1491,7 @@ lib/python3.11/site-packages/setuptools/config/_validate_pyproject/__pycache__/f
 lib/python3.11/site-packages/setuptools/config/_validate_pyproject/__pycache__/formats.cpython-311.pyc
 lib/python3.11/site-packages/setuptools/extern/__init__.py
 lib/python3.11/site-packages/setuptools/extern/__pycache__/__init__.cpython-311.pyc
+src/.DS_Store
 src/__init__.py
 src/voxel_world.py
 src/__pycache__/voxel_world.cpython-311.pyc
